@@ -55,6 +55,15 @@ function e($s) {
     return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 }
 
+/* Проверка российского номера телефона. Возвращает 11 цифр или false. */
+function valid_ru_phone($raw) {
+    $d = preg_replace('/\D/', '', (string)$raw);
+    if (strlen($d) === 11 && $d[0] === '8') {
+        $d = '7' . substr($d, 1);
+    }
+    return (strlen($d) === 11 && $d[0] === '7') ? $d : false;
+}
+
 /* Защита форм от подделки запросов (CSRF) */
 function csrf_token() {
     if (empty($_SESSION['csrf'])) {

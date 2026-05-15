@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pass2 = (string)($_POST['password2'] ?? '');
 
         if (mb_strlen($name) < 2)  { $errors[] = 'Укажите имя.'; }
-        if (mb_strlen($phone) < 6) { $errors[] = 'Укажите телефон.'; }
+        if (!valid_ru_phone($phone)) { $errors[] = 'Укажите корректный номер телефона: +7 и 10 цифр.'; }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = 'Укажите корректный e-mail.'; }
         if (mb_strlen($pass) < 6)  { $errors[] = 'Пароль должен быть не короче 6 символов.'; }
         if ($pass !== $pass2)      { $errors[] = 'Пароли не совпадают.'; }

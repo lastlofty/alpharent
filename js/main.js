@@ -60,6 +60,7 @@
   document.querySelectorAll("form[data-form]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (!checkFormPhones(form)) { return; }
       var ok = form.querySelector(".form__ok");
       if (ok) {
         ok.classList.add("show");
@@ -143,7 +144,7 @@
     });
   });
 
-  // ---- Маска телефона (+7 (XXX) XXX-XX-XX) ----
+  // ---- Маска и проверка телефона (+7 (XXX) XXX-XX-XX) ----
   function formatRuPhone(raw) {
     var d = String(raw).replace(/\D/g, "");
     if (!d) return "";
@@ -159,10 +160,40 @@
     if (p.length > 8) s += "-" + p.slice(8, 10);
     return s;
   }
+  function phoneIsComplete(value) {
+    var d = String(value).replace(/\D/g, "");
+    if (d.length === 11 && d[0] === "8") { d = "7" + d.slice(1); }
+    return d.length === 11 && d[0] === "7";
+  }
+  function checkFormPhones(form) {
+    var allOk = true;
+    form.querySelectorAll('input[type="tel"]').forEach(function (inp) {
+      var val = inp.value.trim();
+      if (val === "" && !inp.required) { inp.setCustomValidity(""); return; }
+      if (!phoneIsComplete(val)) {
+        inp.setCustomValidity("Введите номер телефона полностью — +7 и 10 цифр");
+        allOk = false;
+      } else {
+        inp.setCustomValidity("");
+      }
+    });
+    if (!allOk && form.reportValidity) { form.reportValidity(); }
+    return allOk;
+  }
   document.querySelectorAll('input[type="tel"]').forEach(function (inp) {
-    var apply = function () { inp.value = formatRuPhone(inp.value); };
+    var apply = function () {
+      inp.value = formatRuPhone(inp.value);
+      inp.setCustomValidity("");
+    };
     inp.addEventListener("input", apply);
     inp.addEventListener("blur", apply);
+  });
+  // Проверка телефона в формах с обычной отправкой (регистрация, профиль)
+  document.querySelectorAll("form:not([data-form])").forEach(function (form) {
+    if (!form.querySelector('input[type="tel"]')) { return; }
+    form.addEventListener("submit", function (e) {
+      if (!checkFormPhones(form)) { e.preventDefault(); }
+    });
   });
 
   // ---- Year in footer ----
