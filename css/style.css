@@ -938,3 +938,50 @@ table.price-table {
   .hero::after { width: 320px; height: 200px; right: -50px; bottom: -36px; }
 }
 
+/* ===== Личный кабинет / авторизация ===== */
+.auth-section { min-height: 58vh; }
+.auth-card {
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 34px;
+}
+.auth-card h1 { font-size: 26px; margin-bottom: 6px; }
+.auth-card__sub { color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+.auth-switch { text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.auth-switch a { color: var(--red); font-weight: 700; }
+
+.alert {
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+.alert--error { background: rgba(232, 32, 42, 0.12); border: 1px solid var(--red); color: #ffd7d9; }
+.alert--ok { background: rgba(46, 160, 90, 0.15); border: 1px solid #2ea05a; color: #d4f3e0; }
+.alert ul { margin: 0; padding-left: 18px; }
+.alert li { list-style: disc; }
+
+.account-wrap { max-width: 600px; margin: 0 auto; }
+.account-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px;
+  margin-bottom: 20px;
+}
+.account-box h2 { font-size: 18px; margin-bottom: 16px; }
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.data-row:last-of-type { border-bottom: none; }
+.data-row span { color: var(--muted); }
+.data-row b { color: var(--white); font-weight: 600; text-align: right; }
+

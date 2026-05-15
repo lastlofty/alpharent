@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /admin.php
+Disallow: /admin_export.php
+Disallow: /account.php
+Disallow: /login.php
+Disallow: /register.php
+Disallow: /logout.php
+Disallow: /config.php
+Disallow: /includes/
+Disallow: /data/
 
 Sitemap: https://alpha-rent.ru/sitemap.xml
