@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" role="img" aria-label="Электровелосипед">
+  <defs>
+    <linearGradient id="ar-frame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff3b44"/>
+      <stop offset="1" stop-color="#c01620"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="240" cy="276" rx="190" ry="14" fill="#000" opacity="0.35"/>
+
+  <!-- ===== Rear wheel ===== -->
+  <g>
+    <circle cx="120" cy="208" r="64" fill="none" stroke="#2c2c2c" stroke-width="18"/>
+    <circle cx="120" cy="208" r="46" fill="none" stroke="#4a4a4a" stroke-width="5"/>
+    <g stroke="#5a5a5a" stroke-width="3">
+      <line x1="120" y1="208" x2="120" y2="162"/>
+      <line x1="120" y1="208" x2="160" y2="185"/>
+      <line x1="120" y1="208" x2="160" y2="231"/>
+      <line x1="120" y1="208" x2="120" y2="254"/>
+      <line x1="120" y1="208" x2="80" y2="231"/>
+      <line x1="120" y1="208" x2="80" y2="185"/>
+    </g>
+    <circle cx="120" cy="208" r="9" fill="url(#ar-frame)"/>
+  </g>
+
+  <!-- ===== Front wheel ===== -->
+  <g>
+    <circle cx="372" cy="208" r="64" fill="none" stroke="#2c2c2c" stroke-width="18"/>
+    <circle cx="372" cy="208" r="46" fill="none" stroke="#4a4a4a" stroke-width="5"/>
+    <g stroke="#5a5a5a" stroke-width="3">
+      <line x1="372" y1="208" x2="372" y2="162"/>
+      <line x1="372" y1="208" x2="412" y2="185"/>
+      <line x1="372" y1="208" x2="412" y2="231"/>
+      <line x1="372" y1="208" x2="372" y2="254"/>
+      <line x1="372" y1="208" x2="332" y2="231"/>
+      <line x1="372" y1="208" x2="332" y2="185"/>
+    </g>
+    <circle cx="372" cy="208" r="9" fill="url(#ar-frame)"/>
+  </g>
+
+  <!-- ===== Cargo box (courier) ===== -->
+  <rect x="44" y="92" width="92" height="70" rx="9" fill="#262626" stroke="#3d3d3d" stroke-width="3"/>
+  <rect x="44" y="92" width="92" height="20" rx="9" fill="url(#ar-frame)"/>
+  <text x="90" y="138" font-family="Montserrat, Arial, sans-serif" font-size="22" font-weight="800" fill="#e8202a" text-anchor="middle">AR</text>
+
+  <!-- ===== Frame ===== -->
+  <g fill="none" stroke="url(#ar-frame)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M120 208 L236 212"/>           <!-- chain stay -->
+    <path d="M236 212 L210 118"/>           <!-- seat tube -->
+    <path d="M236 212 L318 138"/>           <!-- down tube -->
+    <path d="M210 118 L322 128"/>           <!-- top tube -->
+    <path d="M120 208 L208 124"/>           <!-- seat stay -->
+    <path d="M372 208 L330 132"/>           <!-- fork -->
+  </g>
+
+  <!-- battery on down tube -->
+  <rect x="244" y="158" width="74" height="22" rx="6" transform="rotate(-42 281 169)" fill="#1c1c1c" stroke="#4a4a4a" stroke-width="3"/>
+
+  <!-- head tube + handlebar -->
+  <line x1="322" y1="128" x2="338" y2="92" stroke="#3d3d3d" stroke-width="12" stroke-linecap="round"/>
+  <path d="M338 92 q-6 -16 -34 -14" fill="none" stroke="#cfcfcf" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="304" cy="78" r="6" fill="url(#ar-frame)"/>
+
+  <!-- seat -->
+  <path d="M186 110 q24 -14 44 -2 q-22 10 -44 2 Z" fill="#1c1c1c" stroke="#3d3d3d" stroke-width="3"/>
+
+  <!-- pedal / crank -->
+  <circle cx="236" cy="212" r="14" fill="#1c1c1c" stroke="#4a4a4a" stroke-width="4"/>
+  <line x1="236" y1="212" x2="252" y2="236" stroke="#cfcfcf" stroke-width="7" stroke-linecap="round"/>
+  <rect x="246" y="234" width="20" height="7" rx="3" fill="#5a5a5a"/>
+</svg>

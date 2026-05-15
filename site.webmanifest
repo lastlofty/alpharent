@@ -1,0 +1,13 @@
+{
+  "name": "Alpha Rent — аренда электровелосипедов в Казани",
+  "short_name": "Alpha Rent",
+  "description": "Аренда, ремонт и выкуп электровелосипедов для курьеров в Казани",
+  "lang": "ru",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#e8202a",
+  "icons": [
+    { "src": "assets/logo.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}
