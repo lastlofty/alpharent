@@ -3,6 +3,10 @@
 
 require_once __DIR__ . '/../config.php';
 
+// Адрес сайта и адрес отправителя писем (можно переопределить в config.php)
+if (!defined('SITE_URL'))  { define('SITE_URL', 'https://alpha-rent.ru'); }
+if (!defined('MAIL_FROM')) { define('MAIL_FROM', 'Alpha Rent <noreply@alpha-rent.ru>'); }
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -29,9 +33,19 @@ function db() {
                 phone         VARCHAR(40)  NOT NULL,
                 email         VARCHAR(190) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
+                is_verified   TINYINT      NOT NULL DEFAULT 0,
+                verify_token  VARCHAR(64)  NULL,
                 created_at    DATETIME     NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
         );
+        // Миграция: дозаписываем недостающие столбцы в уже существующую таблицу
+        try {
+            $pdo->exec('ALTER TABLE users ADD COLUMN is_verified TINYINT NOT NULL DEFAULT 0');
+            $pdo->exec('UPDATE users SET is_verified = 1'); // прежних пользователей считаем подтверждёнными
+        } catch (PDOException $e) { /* столбец уже существует */ }
+        try {
+            $pdo->exec('ALTER TABLE users ADD COLUMN verify_token VARCHAR(64) NULL');
+        } catch (PDOException $e) { /* столбец уже существует */ }
     }
     return $pdo;
 }
@@ -99,4 +113,23 @@ function append_user_csv($name, $phone, $email) {
     }
     fputcsv($fh, [$name, $phone, $email, date('Y-m-d H:i:s')], ';');
     fclose($fh);
+}
+
+/* Отправка письма со ссылкой подтверждения e-mail */
+function send_verification_email($email, $name, $token) {
+    $link = SITE_URL . '/verify.php?token=' . urlencode($token);
+    $subject = '=?UTF-8?B?' . base64_encode('Подтверждение регистрации — Alpha Rent') . '?=';
+    $body = 'Здравствуйте, ' . $name . "!\r\n\r\n"
+          . "Вы зарегистрировались на сайте Alpha Rent.\r\n"
+          . "Подтвердите ваш e-mail — перейдите по ссылке:\r\n\r\n"
+          . $link . "\r\n\r\n"
+          . "Если вы не регистрировались, просто проигнорируйте это письмо.\r\n\r\n"
+          . "Alpha Rent — аренда электровелосипедов в Казани\r\n"
+          . SITE_URL . "\r\n";
+    $headers = 'From: ' . MAIL_FROM . "\r\n"
+             . 'Reply-To: ' . MAIL_FROM . "\r\n"
+             . "MIME-Version: 1.0\r\n"
+             . "Content-Type: text/plain; charset=UTF-8\r\n"
+             . "Content-Transfer-Encoding: 8bit\r\n";
+    return @mail($email, $subject, $body, $headers);
 }

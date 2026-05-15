@@ -5,6 +5,7 @@ Disallow: /admin_export.php
 Disallow: /account.php
 Disallow: /login.php
 Disallow: /register.php
+Disallow: /verify.php
 Disallow: /logout.php
 Disallow: /config.php
 Disallow: /includes/

@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_pass'])) {
 $isAdmin = !empty($_SESSION['admin']);
 $users = [];
 if ($isAdmin) {
-    $users = db()->query('SELECT id, name, phone, email, created_at FROM users ORDER BY id DESC')->fetchAll();
+    $users = db()->query('SELECT id, name, phone, email, is_verified, created_at FROM users ORDER BY id DESC')->fetchAll();
 }
 
 $PAGE_TITLE = 'Админ-панель — Alpha Rent';
@@ -65,7 +65,7 @@ require __DIR__ . '/includes/header.php';
           <div class="table-wrap">
             <table class="price-table">
               <thead>
-                <tr><th>ID</th><th>Имя</th><th>Телефон</th><th>E-mail</th><th>Дата регистрации</th></tr>
+                <tr><th>ID</th><th>Имя</th><th>Телефон</th><th>E-mail</th><th>Статус</th><th>Дата регистрации</th></tr>
               </thead>
               <tbody>
                 <?php foreach ($users as $row): ?>
@@ -74,6 +74,7 @@ require __DIR__ . '/includes/header.php';
                     <td><?= e($row['name']) ?></td>
                     <td><?= e($row['phone']) ?></td>
                     <td><?= e($row['email']) ?></td>
+                    <td><?= ((int)$row['is_verified'] === 1) ? 'Подтверждён' : 'Не подтверждён' ?></td>
                     <td><?= e($row['created_at']) ?></td>
                   </tr>
                 <?php endforeach; ?>

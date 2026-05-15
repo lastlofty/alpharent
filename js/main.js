@@ -143,6 +143,28 @@
     });
   });
 
+  // ---- Маска телефона (+7 (XXX) XXX-XX-XX) ----
+  function formatRuPhone(raw) {
+    var d = String(raw).replace(/\D/g, "");
+    if (!d) return "";
+    if (d[0] === "8") d = "7" + d.slice(1);
+    else if (d[0] !== "7") d = "7" + d;
+    d = d.slice(0, 11);
+    var p = d.slice(1);
+    var s = "+7";
+    if (p.length > 0) s += " (" + p.slice(0, 3);
+    if (p.length >= 3) s += ")";
+    if (p.length > 3) s += " " + p.slice(3, 6);
+    if (p.length > 6) s += "-" + p.slice(6, 8);
+    if (p.length > 8) s += "-" + p.slice(8, 10);
+    return s;
+  }
+  document.querySelectorAll('input[type="tel"]').forEach(function (inp) {
+    var apply = function () { inp.value = formatRuPhone(inp.value); };
+    inp.addEventListener("input", apply);
+    inp.addEventListener("blur", apply);
+  });
+
   // ---- Year in footer ----
   var y = document.querySelector("[data-year]");
   if (y) y.textContent = new Date().getFullYear();
