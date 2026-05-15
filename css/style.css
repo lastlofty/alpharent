@@ -113,6 +113,23 @@ ul { list-style: none; }
 .logo__name span { color: var(--red); }
 .logo__tag { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
 
+.city-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 7px 13px;
+  background: var(--red-soft);
+  border: 1px solid rgba(232, 32, 42, 0.4);
+  border-radius: 999px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  white-space: nowrap;
+}
+.city-badge svg { flex: none; }
+
 .nav { display: flex; gap: 6px; margin-left: auto; }
 .nav a {
   padding: 9px 14px;
@@ -710,8 +727,9 @@ table.price-table {
   .nav a { padding: 13px 14px; font-size: 16px; }
   .burger { display: flex; }
   .header__phone { display: none; }
-  .header__inner { gap: 14px; }
+  .header__inner { gap: 12px; }
   .header__cta { display: none; }
+  .city-badge { padding: 6px 11px; font-size: 12px; margin-left: auto; }
 }
 @media (max-width: 720px) {
   .section { padding: 60px 0; }
