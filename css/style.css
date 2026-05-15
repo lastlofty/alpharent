@@ -622,6 +622,30 @@ table.price-table {
 }
 .map-frame iframe { width: 100%; height: 100%; border: 0; }
 
+.map-tabs {
+  display: inline-flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px;
+  margin-bottom: 16px;
+}
+.map-tab {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 9px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease);
+}
+.map-tab:hover { color: var(--text); }
+.map-tab.active { background: var(--red); color: #fff; }
+
 .messengers { display: flex; gap: 12px; flex-wrap: wrap; }
 .msg-btn {
   display: inline-flex; align-items: center; gap: 8px;

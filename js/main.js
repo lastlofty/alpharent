@@ -89,6 +89,23 @@
     });
   });
 
+  // ---- Map source toggle (Яндекс / 2ГИС) ----
+  var mapTabs = document.querySelectorAll(".map-tab");
+  if (mapTabs.length) {
+    mapTabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var key = tab.getAttribute("data-map");
+        mapTabs.forEach(function (t) {
+          t.classList.toggle("active", t === tab);
+        });
+        document.querySelectorAll("[data-map-panel]").forEach(function (panel) {
+          panel.style.display =
+            panel.getAttribute("data-map-panel") === key ? "block" : "none";
+        });
+      });
+    });
+  }
+
   // ---- Year in footer ----
   var y = document.querySelector("[data-year]");
   if (y) y.textContent = new Date().getFullYear();
