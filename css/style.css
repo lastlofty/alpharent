@@ -361,7 +361,7 @@ h2.section-title { font-size: clamp(28px, 4vw, 42px); margin-bottom: 16px; }
 }
 .bike-card__price .val span { color: var(--muted); font-size: 14px; font-weight: 600; }
 .bike-card__price-opt { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.bike-card__actions { display: flex; gap: 10px; margin-top: 16px; }
+.bike-card__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 
 /* ===== Detailed bike block ===== */
 .bike-detail {
@@ -374,6 +374,7 @@ h2.section-title { font-size: clamp(28px, 4vw, 42px); margin-bottom: 16px; }
   gap: 34px;
   margin-bottom: 26px;
 }
+.bike-detail > * { min-width: 0; }
 .bike-detail__media {
   background: radial-gradient(circle at 50% 40%, #2f2f2f, #1a1a1a);
   border-radius: var(--radius-sm);
@@ -762,6 +763,8 @@ table.price-table {
   .bike-detail .cols, .footer__grid { grid-template-columns: 1fr; }
   .cta-banner { padding: 36px 26px; }
   .bike-detail { padding: 20px; }
+  .bike-detail__media { padding: 20px; }
+  .bike-card__actions .btn { flex: 1 1 100%; }
   .form { padding: 22px; }
   .container { padding: 0 18px; }
 }
