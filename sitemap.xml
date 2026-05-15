@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://alpha-rent-kazan.ru/</loc>
+    <loc>https://alpha-rent.ru/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://alpha-rent-kazan.ru/arenda.html</loc>
+    <loc>https://alpha-rent.ru/arenda.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://alpha-rent-kazan.ru/remont.html</loc>
+    <loc>https://alpha-rent.ru/remont.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alpha-rent-kazan.ru/vykup.html</loc>
+    <loc>https://alpha-rent.ru/vykup.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://alpha-rent-kazan.ru/kontakty.html</loc>
+    <loc>https://alpha-rent.ru/kontakty.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

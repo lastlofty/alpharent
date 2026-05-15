@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://alpha-rent-kazan.ru/sitemap.xml
+Sitemap: https://alpha-rent.ru/sitemap.xml
