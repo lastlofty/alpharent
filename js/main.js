@@ -168,6 +168,7 @@
   function checkFormPhones(form) {
     var allOk = true;
     form.querySelectorAll('input[type="tel"]').forEach(function (inp) {
+      inp.value = formatRuPhone(inp.value);
       var val = inp.value.trim();
       if (val === "" && !inp.required) { inp.setCustomValidity(""); return; }
       if (!phoneIsComplete(val)) {
@@ -182,12 +183,24 @@
   }
   document.querySelectorAll('input[type="tel"]').forEach(function (inp) {
     var apply = function () {
-      inp.value = formatRuPhone(inp.value);
+      var formatted = formatRuPhone(inp.value);
+      if (inp.value !== formatted) { inp.value = formatted; }
       inp.setCustomValidity("");
     };
+    // реагируем на ввод, вставку, автозаполнение и потерю фокуса
     inp.addEventListener("input", apply);
+    inp.addEventListener("change", apply);
     inp.addEventListener("blur", apply);
+    inp.addEventListener("focus", apply);
+    // форматируем уже заполненное значение (например, подставленное браузером)
+    if (inp.value) { apply(); }
   });
+  // автозаполнение иногда срабатывает чуть позже загрузки — подстрахуемся
+  setTimeout(function () {
+    document.querySelectorAll('input[type="tel"]').forEach(function (inp) {
+      if (inp.value) { inp.value = formatRuPhone(inp.value); }
+    });
+  }, 600);
   // Проверка телефона в формах с обычной отправкой (регистрация, профиль)
   document.querySelectorAll("form:not([data-form])").forEach(function (form) {
     if (!form.querySelector('input[type="tel"]')) { return; }
