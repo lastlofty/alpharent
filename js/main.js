@@ -106,6 +106,43 @@
     });
   }
 
+  // ---- Reviews carousel ----
+  var rTrack = document.querySelector("[data-reviews-track]");
+  if (rTrack) {
+    var rStep = function () {
+      var card = rTrack.querySelector(".review-card");
+      return card ? card.offsetWidth + 22 : 320;
+    };
+    var rPrev = document.querySelector("[data-reviews-prev]");
+    var rNext = document.querySelector("[data-reviews-next]");
+    if (rPrev) {
+      rPrev.addEventListener("click", function () {
+        rTrack.scrollBy({ left: -rStep(), behavior: "smooth" });
+      });
+    }
+    if (rNext) {
+      rNext.addEventListener("click", function () {
+        rTrack.scrollBy({ left: rStep(), behavior: "smooth" });
+      });
+    }
+  }
+
+  // ---- Specs panel toggle (страница «Аренда») ----
+  document.querySelectorAll("[data-specs-toggle]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var actions = btn.closest(".bike-card__actions");
+      var panel = actions ? actions.nextElementSibling : null;
+      if (!panel || !panel.hasAttribute("data-specs-panel")) return;
+      var isHidden = panel.hasAttribute("hidden");
+      if (isHidden) {
+        panel.removeAttribute("hidden");
+      } else {
+        panel.setAttribute("hidden", "");
+      }
+      btn.classList.toggle("active", isHidden);
+    });
+  });
+
   // ---- Year in footer ----
   var y = document.querySelector("[data-year]");
   if (y) y.textContent = new Date().getFullYear();

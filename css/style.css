@@ -768,3 +768,173 @@ table.price-table {
   .form { padding: 22px; }
   .container { padding: 0 18px; }
 }
+
+/* ===== Hero background decor ===== */
+.hero .container { position: relative; z-index: 1; }
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.4px, transparent 1.4px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 55% 5%, #000 35%, transparent 80%);
+  mask-image: radial-gradient(ellipse 75% 65% at 55% 5%, #000 35%, transparent 80%);
+  pointer-events: none;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -70px;
+  bottom: -55px;
+  z-index: 0;
+  width: 480px;
+  height: 300px;
+  background: url("../assets/ebike.svg") no-repeat center / contain;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* ===== Catalog spec pills ===== */
+.bike-card__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.spec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.spec-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* ===== Reviews carousel ===== */
+.reviews-carousel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.reviews-track {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 6px 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.reviews-track::-webkit-scrollbar { display: none; }
+.reviews-track .review-card {
+  flex: 0 0 calc((100% - 44px) / 3);
+  scroll-snap-align: start;
+}
+.carousel-arrow {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--white);
+  font-size: 24px;
+  font-family: "Montserrat", sans-serif;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--ease), border-color var(--ease);
+}
+.carousel-arrow:hover { background: var(--red); border-color: var(--red); }
+
+/* ===== Bonus / referral cards ===== */
+.bonus-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--ease), border-color var(--ease);
+}
+.bonus-card:hover { transform: translateY(-4px); border-color: var(--red); }
+.bonus-card__badge {
+  align-self: flex-start;
+  background: var(--red);
+  color: #fff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.bonus-card h3 { font-size: 19px; margin-bottom: 10px; }
+.bonus-card p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+.bonus-card .spec-list { margin-bottom: 0; }
+.bonus-card--accent {
+  background: linear-gradient(160deg, rgba(232, 32, 42, 0.16), var(--surface));
+  border-color: rgba(232, 32, 42, 0.4);
+}
+
+/* ===== Socials ===== */
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  transition: color var(--ease), border-color var(--ease), transform var(--ease);
+}
+.social svg { color: var(--red); flex: none; }
+.social:hover { color: var(--white); border-color: var(--red); transform: translateY(-2px); }
+
+/* ===== Specs panel (страница «Аренда») ===== */
+.specs-panel {
+  margin-top: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+}
+.specs-panel[hidden] { display: none; }
+.specs-panel h4 { font-size: 15px; margin-bottom: 10px; }
+.specs-panel .spec-list { margin-bottom: 0; }
+.specs-panel__note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+[data-specs-toggle].active { border-color: var(--red); color: var(--white); }
+
+@media (max-width: 1000px) {
+  .reviews-track .review-card { flex: 0 0 calc((100% - 22px) / 2); }
+}
+@media (max-width: 720px) {
+  .reviews-track .review-card { flex: 0 0 86%; }
+  .carousel-arrow { display: none; }
+  .hero::after { width: 320px; height: 200px; right: -50px; bottom: -36px; }
+}
+
