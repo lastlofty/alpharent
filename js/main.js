@@ -165,6 +165,38 @@
     });
   });
 
+  // ---- Фотогалерея модели ----
+  document.querySelectorAll("[data-gallery]").forEach(function (g) {
+    var strip = g.querySelector(".gallery__strip");
+    if (!strip) return;
+    var imgs = strip.querySelectorAll("img");
+    var prev = g.querySelector("[data-gallery-prev]");
+    var next = g.querySelector("[data-gallery-next]");
+    var counter = g.querySelector(".gallery__count");
+    if (imgs.length <= 1) {
+      if (prev) prev.style.display = "none";
+      if (next) next.style.display = "none";
+      if (counter) counter.style.display = "none";
+      return;
+    }
+    function update() {
+      var i = Math.round(strip.scrollLeft / strip.clientWidth);
+      if (counter) counter.textContent = (i + 1) + " / " + imgs.length;
+    }
+    if (prev) {
+      prev.addEventListener("click", function () {
+        strip.scrollBy({ left: -strip.clientWidth, behavior: "smooth" });
+      });
+    }
+    if (next) {
+      next.addEventListener("click", function () {
+        strip.scrollBy({ left: strip.clientWidth, behavior: "smooth" });
+      });
+    }
+    strip.addEventListener("scroll", update);
+    update();
+  });
+
   // ---- Маска и проверка телефона (+7 (XXX) XXX-XX-XX) ----
   function formatRuPhone(raw) {
     var d = String(raw).replace(/\D/g, "");
