@@ -165,7 +165,7 @@
     });
   });
 
-  // ---- Фотогалерея модели ----
+  // ---- Фотогалерея модели (с автолистанием каждые 5 сек) ----
   document.querySelectorAll("[data-gallery]").forEach(function (g) {
     var strip = g.querySelector(".gallery__strip");
     if (!strip) return;
@@ -179,22 +179,44 @@
       if (counter) counter.style.display = "none";
       return;
     }
+    function curIndex() {
+      return Math.round(strip.scrollLeft / strip.clientWidth);
+    }
     function update() {
-      var i = Math.round(strip.scrollLeft / strip.clientWidth);
-      if (counter) counter.textContent = (i + 1) + " / " + imgs.length;
+      if (counter) counter.textContent = (curIndex() + 1) + " / " + imgs.length;
+    }
+    function go(i) {
+      strip.scrollTo({ left: i * strip.clientWidth, behavior: "smooth" });
+    }
+    var timer = null;
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+    function start() {
+      stop();
+      timer = setInterval(function () {
+        go((curIndex() + 1) % imgs.length);
+      }, 5000);
     }
     if (prev) {
       prev.addEventListener("click", function () {
-        strip.scrollBy({ left: -strip.clientWidth, behavior: "smooth" });
+        go((curIndex() - 1 + imgs.length) % imgs.length);
+        start();
       });
     }
     if (next) {
       next.addEventListener("click", function () {
-        strip.scrollBy({ left: strip.clientWidth, behavior: "smooth" });
+        go((curIndex() + 1) % imgs.length);
+        start();
       });
     }
     strip.addEventListener("scroll", update);
+    g.addEventListener("mouseenter", stop);
+    g.addEventListener("mouseleave", start);
+    g.addEventListener("touchstart", stop, { passive: true });
+    g.addEventListener("touchend", start, { passive: true });
     update();
+    start();
   });
 
   // ---- Маска и проверка телефона (+7 (XXX) XXX-XX-XX) ----
