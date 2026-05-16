@@ -34,20 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $pass = (string)($_POST['password'] ?? '');
-            $st = db()->prepare('SELECT * FROM users WHERE email = ?');
-            $st->execute([$email]);
-            $row = $st->fetch();
-            if ($row && password_verify($pass, $row['password_hash'])) {
-                if ((int)$row['is_verified'] === 1) {
-                    session_regenerate_id(true);
-                    $_SESSION['uid'] = (int)$row['id'];
-                    header('Location: account.php');
-                    exit;
-                }
-                $needVerify = true;
-                $errors[] = 'E-mail не подтверждён. Перейдите по ссылке из письма, которое мы отправили при регистрации.';
+            $ip = client_ip();
+            if (login_too_many($ip)) {
+                $errors[] = 'Слишком много попыток входа. Попробуйте снова через 15 минут.';
             } else {
-                $errors[] = 'Неверный e-mail или пароль.';
+                $st = db()->prepare('SELECT * FROM users WHERE email = ?');
+                $st->execute([$email]);
+                $row = $st->fetch();
+                if ($row && password_verify($pass, $row['password_hash'])) {
+                    if ((int)$row['is_verified'] === 1) {
+                        session_regenerate_id(true);
+                        $_SESSION['uid'] = (int)$row['id'];
+                        header('Location: account.php');
+                        exit;
+                    }
+                    $needVerify = true;
+                    $errors[] = 'E-mail не подтверждён. Перейдите по ссылке из письма, которое мы отправили при регистрации.';
+                } else {
+                    login_record_fail($ip);
+                    $errors[] = 'Неверный e-mail или пароль.';
+                }
             }
         }
     }
@@ -95,7 +101,8 @@ require __DIR__ . '/includes/header.php';
         <button type="submit" class="btn btn-primary btn-block btn-lg">Войти</button>
       </form>
 
-      <p class="auth-switch">Нет аккаунта? <a href="register.php">Зарегистрироваться</a></p>
+      <p class="auth-switch"><a href="reset.php">Забыли пароль?</a></p>
+      <p class="auth-switch" style="margin-top:8px">Нет аккаунта? <a href="register.php">Зарегистрироваться</a></p>
     </div>
   </div>
 </section>

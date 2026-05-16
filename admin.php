@@ -9,13 +9,18 @@ if (isset($_GET['logout'])) {
 
 $loginError = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_pass'])) {
-    if (csrf_check() && hash_equals(ADMIN_PASSWORD, (string)$_POST['admin_pass'])) {
+    $ip = client_ip();
+    if (login_too_many($ip)) {
+        $loginError = 'Слишком много попыток. Попробуйте снова через 15 минут.';
+    } elseif (csrf_check() && hash_equals(ADMIN_PASSWORD, (string)$_POST['admin_pass'])) {
         session_regenerate_id(true);
         $_SESSION['admin'] = true;
         header('Location: admin.php');
         exit;
+    } else {
+        login_record_fail($ip);
+        $loginError = 'Неверный пароль.';
     }
-    $loginError = 'Неверный пароль.';
 }
 
 $isAdmin = is_admin();

@@ -56,7 +56,7 @@
     </div>
     <div class="footer__bottom">
       <span>© <span data-year>2026</span> Alpha Rent. Аренда электровелосипедов в Казани.</span>
-      <span>Сделано для курьеров Казани</span>
+      <a href="policy.php">Политика конфиденциальности</a>
     </div>
   </div>
 </footer>

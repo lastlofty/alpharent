@@ -8,6 +8,13 @@ if (!defined('SITE_URL'))  { define('SITE_URL', 'https://alpha-rent.ru'); }
 if (!defined('MAIL_FROM')) { define('MAIL_FROM', 'Alpha Rent <noreply@alpha-rent.ru>'); }
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => true,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
 }
 
@@ -90,6 +97,15 @@ function db() {
                 weeks      INT NOT NULL DEFAULT 1,
                 status     VARCHAR(20) NOT NULL DEFAULT "new",
                 comment    VARCHAR(255) NULL,
+                created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
+        try { $pdo->exec('ALTER TABLE users ADD COLUMN reset_token VARCHAR(64) NULL'); } catch (PDOException $e) {}
+        try { $pdo->exec('ALTER TABLE users ADD COLUMN reset_expires DATETIME NULL'); } catch (PDOException $e) {}
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS login_attempts (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                ip         VARCHAR(45) NOT NULL,
                 created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
         );
@@ -188,6 +204,42 @@ function send_verification_email($email, $name, $token) {
              . "Content-Type: text/plain; charset=UTF-8\r\n"
              . "Content-Transfer-Encoding: 8bit\r\n";
     return @mail($email, $subject, $body, $headers);
+}
+
+/* Письмо для восстановления пароля */
+function send_reset_email($email, $name, $token) {
+    $link = SITE_URL . '/reset.php?token=' . urlencode($token);
+    $subject = '=?UTF-8?B?' . base64_encode('Восстановление пароля — Alpha Rent') . '?=';
+    $body = 'Здравствуйте, ' . $name . "!\r\n\r\n"
+          . "Вы запросили восстановление пароля на сайте Alpha Rent.\r\n"
+          . "Чтобы задать новый пароль, перейдите по ссылке (действует 1 час):\r\n\r\n"
+          . $link . "\r\n\r\n"
+          . "Если вы не запрашивали восстановление — просто проигнорируйте это письмо.\r\n\r\n"
+          . "Alpha Rent\r\n" . SITE_URL . "\r\n";
+    $headers = 'From: ' . MAIL_FROM . "\r\n"
+             . 'Reply-To: ' . MAIL_FROM . "\r\n"
+             . "MIME-Version: 1.0\r\n"
+             . "Content-Type: text/plain; charset=UTF-8\r\n"
+             . "Content-Transfer-Encoding: 8bit\r\n";
+    return @mail($email, $subject, $body, $headers);
+}
+
+/* IP клиента */
+function client_ip() {
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+}
+
+/* Защита от перебора пароля: не более 10 неудачных попыток с IP за 15 минут */
+function login_too_many($ip) {
+    $st = db()->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > ?');
+    $st->execute([$ip, date('Y-m-d H:i:s', time() - 900)]);
+    return (int)$st->fetchColumn() >= 10;
+}
+function login_record_fail($ip) {
+    db()->prepare('INSERT INTO login_attempts (ip, created_at) VALUES (?, ?)')
+        ->execute([$ip, date('Y-m-d H:i:s')]);
+    db()->prepare('DELETE FROM login_attempts WHERE created_at < ?')
+        ->execute([date('Y-m-d H:i:s', time() - 7200)]);
 }
 
 /* Отправка сообщения в Telegram-бота. Возвращает true при успехе. */
