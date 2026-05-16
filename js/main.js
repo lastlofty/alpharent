@@ -56,24 +56,35 @@
     reveals.forEach(function (el) { el.classList.add("visible"); });
   }
 
-  // ---- Forms ----
+  // ---- Forms (отправка заявок в Telegram через send_request.php) ----
   document.querySelectorAll("form[data-form]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!checkFormPhones(form)) { return; }
       var ok = form.querySelector(".form__ok");
-      if (ok) {
-        ok.classList.add("show");
-        ok.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      form.reset();
-      /*
-        Подключение онлайн-оплаты:
-        здесь после отправки заявки выполняется редирект на платёжную
-        страницу (ЮKassa / Точка / Тинькофф). Платёжный модуль создаёт
-        счёт по выбранной модели и периоду аренды и возвращает
-        confirmation_url, на который перенаправляется клиент.
-      */
+      var btn = form.querySelector('button[type="submit"]');
+      var data = new FormData(form);
+      data.append("source", document.title);
+      if (btn) { btn.disabled = true; }
+      fetch("send_request.php", { method: "POST", body: data })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.ok) {
+            if (ok) {
+              ok.classList.add("show");
+              ok.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            form.reset();
+          } else {
+            alert("Не удалось отправить заявку. Позвоните нам: +7 (995) 687-03-04");
+          }
+        })
+        .catch(function () {
+          alert("Не удалось отправить заявку. Проверьте интернет-соединение или позвоните: +7 (995) 687-03-04");
+        })
+        .finally(function () {
+          if (btn) { btn.disabled = false; }
+        });
     });
   });
 

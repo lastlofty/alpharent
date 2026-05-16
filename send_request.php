@@ -1,0 +1,57 @@
+<?php
+/* Приём заявок с сайта и пересылка в Telegram-бот */
+require __DIR__ . '/includes/db.php';
+
+header('Content-Type: application/json; charset=utf-8');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['ok' => false, 'error' => 'method']);
+    exit;
+}
+
+// Ловушка для спам-ботов: скрытое поле, которое заполняют только боты
+if (trim($_POST['website'] ?? '') !== '') {
+    echo json_encode(['ok' => true]); // тихо игнорируем
+    exit;
+}
+
+$name   = trim($_POST['name'] ?? '');
+$phone  = trim($_POST['phone'] ?? '');
+$source = trim($_POST['source'] ?? '');
+
+if (mb_strlen($name) < 2 || !valid_ru_phone($phone)) {
+    echo json_encode(['ok' => false, 'error' => 'validation']);
+    exit;
+}
+
+// Сохраняем заявку в файл — на случай, если Telegram недоступен
+append_request_csv($name, $phone, $_POST);
+
+// Формируем сообщение для Telegram
+$fields = [
+    'model'   => 'Модель',
+    'term'    => 'Срок аренды',
+    'type'    => 'Тип техники',
+    'topic'   => 'Тема обращения',
+    'comment' => 'Комментарий',
+];
+$lines = [];
+$lines[] = '🚲 Новая заявка — Alpha Rent';
+$lines[] = '';
+$lines[] = 'Имя: ' . $name;
+$lines[] = 'Телефон: ' . $phone;
+foreach ($fields as $key => $label) {
+    $val = trim($_POST[$key] ?? '');
+    if ($val !== '') {
+        $lines[] = $label . ': ' . $val;
+    }
+}
+if ($source !== '') {
+    $lines[] = 'Страница: ' . $source;
+}
+$lines[] = 'Время: ' . date('d.m.Y H:i');
+
+send_telegram(implode("\n", $lines));
+
+// Заявка принята (сохранена в файл; в Telegram отправлена, если бот настроен)
+echo json_encode(['ok' => true]);

@@ -142,3 +142,73 @@ function send_verification_email($email, $name, $token) {
              . "Content-Transfer-Encoding: 8bit\r\n";
     return @mail($email, $subject, $body, $headers);
 }
+
+/* Отправка сообщения в Telegram-бота. Возвращает true при успехе. */
+function send_telegram($text) {
+    if (!defined('TELEGRAM_BOT_TOKEN') || !defined('TELEGRAM_CHAT_ID')) {
+        return false;
+    }
+    $token = (string)TELEGRAM_BOT_TOKEN;
+    $chat  = (string)TELEGRAM_CHAT_ID;
+    if ($token === '' || $chat === '' || mb_strpos($token, 'ВПИШИТЕ') !== false) {
+        return false; // бот ещё не настроен
+    }
+    $url = 'https://api.telegram.org/bot' . $token . '/sendMessage';
+    $params = [
+        'chat_id' => $chat,
+        'text'    => $text,
+        'disable_web_page_preview' => 'true',
+    ];
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $params,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+        ]);
+        curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return $code === 200;
+    }
+    $ctx = stream_context_create(['http' => [
+        'method'  => 'POST',
+        'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query($params),
+        'timeout' => 10,
+    ]]);
+    return @file_get_contents($url, false, $ctx) !== false;
+}
+
+/* Дозапись заявки в файл requests.csv (открывается в Excel) */
+function append_request_csv($name, $phone, $data) {
+    $dir = __DIR__ . '/../data';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+    }
+    $ht = $dir . '/.htaccess';
+    if (!file_exists($ht)) {
+        @file_put_contents($ht, "Require all denied\nDeny from all\n");
+    }
+    $file = $dir . '/requests.csv';
+    $isNew = !file_exists($file);
+    $fh = @fopen($file, 'a');
+    if (!$fh) {
+        return;
+    }
+    if ($isNew) {
+        fwrite($fh, "\xEF\xBB\xBF");
+        fputcsv($fh, ['Дата', 'Имя', 'Телефон', 'Модель', 'Срок', 'Тип техники', 'Тема', 'Комментарий', 'Страница'], ';');
+    }
+    fputcsv($fh, [
+        date('Y-m-d H:i:s'), $name, $phone,
+        trim($data['model'] ?? ''),
+        trim($data['term'] ?? ''),
+        trim($data['type'] ?? ''),
+        trim($data['topic'] ?? ''),
+        trim($data['comment'] ?? ''),
+        trim($data['source'] ?? ''),
+    ], ';');
+    fclose($fh);
+}
