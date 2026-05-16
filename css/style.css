@@ -990,7 +990,7 @@ table.price-table {
   position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #ffffff;
+  background: transparent;
 }
 .gallery__strip {
   display: flex;
@@ -1006,7 +1006,7 @@ table.price-table {
   width: 100%;
   height: 260px;
   object-fit: contain;
-  background: #ffffff;
+  padding: 14px;
   scroll-snap-align: center;
   display: block;
 }
@@ -1049,14 +1049,21 @@ table.price-table {
   width: 100%;
   height: 200px;
   object-fit: contain;
-  background: #ffffff;
-  border-radius: var(--radius-sm);
 }
 .hero__bike img {
   width: 100%;
   height: 230px;
   object-fit: contain;
-  background: #ffffff;
-  border-radius: 14px;
+}
+
+/* Белая обводка по контуру вырезанных фото */
+.gallery__strip img,
+.bike-card__media img,
+.hero__bike img {
+  filter:
+    drop-shadow(0 -2px 0 #fff) drop-shadow(0 2px 0 #fff)
+    drop-shadow(-2px 0 0 #fff) drop-shadow(2px 0 0 #fff)
+    drop-shadow(-1.5px -1.5px 0 #fff) drop-shadow(1.5px -1.5px 0 #fff)
+    drop-shadow(-1.5px 1.5px 0 #fff) drop-shadow(1.5px 1.5px 0 #fff);
 }
 
