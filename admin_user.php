@@ -229,8 +229,8 @@ require __DIR__ . '/includes/header.php';
                   <td><?= e(date('d.m.Y H:i', strtotime($r['created_at']))) ?></td>
                   <td><?= e(billing_type_label($r['type'])) ?></td>
                   <td>
-                    <?php if ($r['type'] === 'free_days' && (int)$r['days'] > 0): ?>
-                      +<?= (int)$r['days'] ?> дн.
+                    <?php if ($r['type'] === 'free_days' && (int)$r['days'] !== 0): ?>
+                      <?= (int)$r['days'] > 0 ? '+' : '−' ?><?= abs((int)$r['days']) ?> дн.
                     <?php elseif ((int)$r['amount'] !== 0): ?>
                       <?php $minus = $r['type'] === 'payment' || (int)$r['amount'] < 0; ?>
                       <?= $minus ? '−' : '+' ?><?= money(abs((int)$r['amount'])) ?>

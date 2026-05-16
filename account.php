@@ -42,6 +42,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute([password_hash($new, PASSWORD_DEFAULT), $u['id']]);
                 $okMsg = 'Пароль изменён.';
             }
+        } elseif ($action === 'book') {
+            $bmodel   = trim($_POST['bmodel'] ?? '');
+            $bdate    = trim($_POST['bdate'] ?? '');
+            $bweeks   = (int)($_POST['bweeks'] ?? 1);
+            $bcomment = trim($_POST['bcomment'] ?? '');
+            $d = DateTime::createFromFormat('Y-m-d', $bdate);
+            if (!in_array($bmodel, bike_models(), true)) {
+                $errors[] = 'Выберите модель из списка.';
+            } elseif (!$d || $d->format('Y-m-d') !== $bdate) {
+                $errors[] = 'Укажите корректную дату начала аренды.';
+            } elseif ($bdate < date('Y-m-d')) {
+                $errors[] = 'Дата начала не может быть в прошлом.';
+            } elseif ($bweeks < 1 || $bweeks > 12) {
+                $errors[] = 'Срок аренды — от 1 до 12 недель.';
+            } else {
+                db()->prepare('INSERT INTO bookings (user_id, model, start_date, weeks, status, comment, created_at) VALUES (?,?,?,?,?,?,?)')
+                    ->execute([$u['id'], $bmodel, $bdate, $bweeks, 'new', $bcomment, date('Y-m-d H:i:s')]);
+                $tg = "📅 Новая бронь — Alpha Rent\n\n"
+                    . 'Клиент: ' . $u['name'] . "\n"
+                    . 'Телефон: ' . $u['phone'] . "\n"
+                    . 'Модель: ' . $bmodel . "\n"
+                    . 'Дата начала: ' . date('d.m.Y', strtotime($bdate)) . "\n"
+                    . 'Срок: ' . $bweeks . ' нед.';
+                if ($bcomment !== '') { $tg .= "\nКомментарий: " . $bcomment; }
+                send_telegram($tg);
+                $okMsg = 'Заявка на бронь отправлена! Мы свяжемся с вами и подтвердим велосипед.';
+            }
         }
     }
     $st = db()->prepare('SELECT * FROM users WHERE id = ?');
@@ -53,6 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $histSt = db()->prepare('SELECT * FROM billing_log WHERE user_id = ? ORDER BY id DESC LIMIT 30');
 $histSt->execute([$u['id']]);
 $history = $histSt->fetchAll();
+
+$bkSt = db()->prepare(
+    'SELECT b.*, bk.number AS bike_number
+     FROM bookings b LEFT JOIN bikes bk ON bk.id = b.bike_id
+     WHERE b.user_id = ? ORDER BY b.id DESC'
+);
+$bkSt->execute([$u['id']]);
+$bookings = $bkSt->fetchAll();
 
 $payReady = defined('PAYMENT_LINK') && PAYMENT_LINK !== '' && mb_strpos((string)PAYMENT_LINK, 'ВПИШИТЕ') === false;
 
@@ -126,8 +161,8 @@ require __DIR__ . '/includes/header.php';
                   <td><?= e(date('d.m.Y H:i', strtotime($h['created_at']))) ?></td>
                   <td><?= e(billing_type_label($h['type'])) ?></td>
                   <td>
-                    <?php if ((int)$h['days'] > 0 && $h['type'] === 'free_days'): ?>
-                      +<?= (int)$h['days'] ?> дн.
+                    <?php if ($h['type'] === 'free_days' && (int)$h['days'] !== 0): ?>
+                      <?= (int)$h['days'] > 0 ? '+' : '−' ?><?= abs((int)$h['days']) ?> дн.
                     <?php elseif ((int)$h['amount'] !== 0): ?>
                       <?php $isMinus = in_array($h['type'], ['payment'], true) || (int)$h['amount'] < 0; ?>
                       <?= $isMinus ? '−' : '+' ?><?= money(abs((int)$h['amount'])) ?>
@@ -136,6 +171,63 @@ require __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                   </td>
                   <td><?= e($h['comment']) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+
+    <div class="account-box">
+      <h2>Забронировать электровелосипед</h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Выберите модель, дату начала и срок. Мы подтвердим бронь, закрепим за вами конкретный велосипед и подготовим его к выдаче.</p>
+      <form method="post" novalidate>
+        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+        <input type="hidden" name="action" value="book">
+        <div class="row row-2">
+          <div class="field">
+            <label for="bmodel">Модель</label>
+            <select id="bmodel" name="bmodel">
+              <?php foreach (bike_models() as $m): ?>
+                <option value="<?= e($m) ?>"><?= e($m) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="field">
+            <label for="bdate">Дата начала</label>
+            <input type="date" id="bdate" name="bdate" min="<?= date('Y-m-d') ?>" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="bweeks">Срок аренды</label>
+          <select id="bweeks" name="bweeks">
+            <option value="1">1 неделя</option>
+            <option value="2">2 недели</option>
+            <option value="3">3 недели</option>
+            <option value="4">4 недели</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="bcomment">Комментарий</label>
+          <input type="text" id="bcomment" name="bcomment" placeholder="Необязательно — пожелания, удобное время">
+        </div>
+        <button type="submit" class="btn btn-primary">Забронировать</button>
+      </form>
+
+      <?php if ($bookings): ?>
+        <h4 style="margin-top:22px;font-size:15px">Мои брони</h4>
+        <div class="table-wrap" style="margin-top:10px">
+          <table class="price-table">
+            <thead><tr><th>Модель</th><th>Дата начала</th><th>Срок</th><th>Велосипед</th><th>Статус</th></tr></thead>
+            <tbody>
+              <?php foreach ($bookings as $bk): ?>
+                <tr>
+                  <td><?= e($bk['model']) ?></td>
+                  <td><?= e(date('d.m.Y', strtotime($bk['start_date']))) ?></td>
+                  <td><?= (int)$bk['weeks'] ?> нед.</td>
+                  <td><?= $bk['bike_number'] ? '№ ' . (int)$bk['bike_number'] : '—' ?></td>
+                  <td><?= e(booking_status_label($bk['status'])) ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>

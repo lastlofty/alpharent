@@ -80,6 +80,19 @@ function db() {
                 created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
         );
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS bookings (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                user_id    INT NOT NULL,
+                model      VARCHAR(80) NOT NULL,
+                bike_id    INT NULL,
+                start_date DATE NOT NULL,
+                weeks      INT NOT NULL DEFAULT 1,
+                status     VARCHAR(20) NOT NULL DEFAULT "new",
+                comment    VARCHAR(255) NULL,
+                created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
     }
     return $pdo;
 }
@@ -283,6 +296,21 @@ function bike_statuses() {
 }
 function bike_status_label($s) {
     $m = bike_statuses();
+    return isset($m[$s]) ? $m[$s] : $s;
+}
+
+/* Статусы брони */
+function booking_statuses() {
+    return [
+        'new'       => 'Новая заявка',
+        'confirmed' => 'Подтверждена',
+        'active'    => 'Велосипед выдан',
+        'done'      => 'Завершена',
+        'cancelled' => 'Отменена',
+    ];
+}
+function booking_status_label($s) {
+    $m = booking_statuses();
     return isset($m[$s]) ? $m[$s] : $s;
 }
 
