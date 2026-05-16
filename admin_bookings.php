@@ -34,6 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 db()->prepare('UPDATE bookings SET bike_id = ?, status = "confirmed" WHERE id = ?')->execute([$bikeId, $bid]);
                 db()->prepare('UPDATE bikes SET status = "booked" WHERE id = ?')->execute([$bikeId]);
                 $msg = 'Бронь подтверждена, велосипед №' . (int)$bike['number'] . ' закреплён за клиентом.';
+                $ust = db()->prepare('SELECT name, email FROM users WHERE id = ?');
+                $ust->execute([$bk['user_id']]);
+                $cu = $ust->fetch();
+                if ($cu) {
+                    send_booking_confirmed_email($cu['email'], $cu['name'], $bk['model'], (int)$bike['number'], date('d.m.Y', strtotime($bk['start_date'])));
+                }
             }
         } elseif ($action === 'pickup') {
             if ($bk['status'] === 'confirmed') {
@@ -46,7 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     billing_log_add($bk['user_id'], 'free_days', 0, -1,
                         'Бонусный день сгорел — клиент не явился в назначенный день', 'админ');
                 }
-                $msg = 'Отмечена выдача велосипеда клиенту.';
+                if (!empty($_POST['startbilling'])) {
+                    $price = model_weekly_price($bk['model']);
+                    if ($price > 0) {
+                        db()->prepare('UPDATE users SET tariff_model = ?, weekly_price = ?, rental_active = 1, rental_start = ?, next_charge_at = ? WHERE id = ?')
+                            ->execute([$bk['model'], $price, date('Y-m-d H:i:s'), date('Y-m-d H:i:s', strtotime('+7 days')), $bk['user_id']]);
+                        billing_log_add($bk['user_id'], 'start', 0, 0,
+                            'Аренда запущена из брони. Тариф: ' . $bk['model'] . ', ' . money($price) . '/нед', 'админ');
+                    }
+                }
+                $msg = 'Отмечена выдача велосипеда клиенту.'
+                     . (!empty($_POST['startbilling']) ? ' Начисление аренды запущено.' : '');
             } else {
                 $err = 'Выдать можно только подтверждённую бронь.';
             }
@@ -147,9 +163,13 @@ require __DIR__ . '/includes/header.php';
               <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
               <input type="hidden" name="action" value="pickup">
               <input type="hidden" name="booking_id" value="<?= (int)$b['id'] ?>">
-              <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:12px">
+              <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:8px">
                 <input type="checkbox" name="burn" value="1" style="width:auto">
                 Клиент явился не в назначенный день — сжечь 1 бонусный день
+              </label>
+              <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:12px">
+                <input type="checkbox" name="startbilling" value="1" style="width:auto" checked>
+                Запустить начисление аренды (тариф по модели)
               </label>
               <button type="submit" class="btn btn-primary">Отметить выдачу велосипеда</button>
             </form>

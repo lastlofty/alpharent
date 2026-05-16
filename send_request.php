@@ -59,6 +59,16 @@ if ($source !== '') {
 }
 $lines[] = 'Время: ' . date('d.m.Y H:i');
 
+// Сохраняем заявку в базу — для раздела «Заявки» в админ-панели
+$detailParts = [];
+foreach ($fields as $key => $label) {
+    $v = trim($_POST[$key] ?? '');
+    if ($v !== '') { $detailParts[] = $label . ': ' . $v; }
+}
+if ($pay !== '') { $detailParts[] = 'Оплата: ' . ($isCard ? 'картой онлайн' : 'наличными'); }
+db()->prepare('INSERT INTO requests (name, phone, details, source, created_at) VALUES (?,?,?,?,?)')
+    ->execute([$name, $phone, mb_substr(implode('; ', $detailParts), 0, 500), mb_substr($source, 0, 160), date('Y-m-d H:i:s')]);
+
 send_telegram(implode("\n", $lines));
 
 // Если выбрана оплата картой — возвращаем ссылку для перехода к оплате

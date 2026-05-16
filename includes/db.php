@@ -7,6 +7,12 @@ require_once __DIR__ . '/../config.php';
 if (!defined('SITE_URL'))  { define('SITE_URL', 'https://alpha-rent.ru'); }
 if (!defined('MAIL_FROM')) { define('MAIL_FROM', 'Alpha Rent <noreply@alpha-rent.ru>'); }
 
+// SMTP для отправки писем (пароль ящика впишите в config.php: define('SMTP_PASS', '...'))
+if (!defined('SMTP_HOST')) { define('SMTP_HOST', 'smtp.beget.com'); }
+if (!defined('SMTP_PORT')) { define('SMTP_PORT', 465); }
+if (!defined('SMTP_USER')) { define('SMTP_USER', 'noreply@alpha-rent.ru'); }
+if (!defined('SMTP_PASS')) { define('SMTP_PASS', ''); }
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -109,6 +115,16 @@ function db() {
                 created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
         );
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS requests (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                name       VARCHAR(120) NOT NULL,
+                phone      VARCHAR(40)  NOT NULL,
+                details    VARCHAR(500) NULL,
+                source     VARCHAR(160) NULL,
+                created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
     }
     return $pdo;
 }
@@ -187,6 +203,49 @@ function append_user_csv($name, $phone, $email) {
     fclose($fh);
 }
 
+/* Отправка письма через SMTP. Возвращает true при успехе, false — если SMTP не настроен или ошибка. */
+function smtp_send($to, $subject, $body) {
+    if (!defined('SMTP_PASS') || SMTP_PASS === '' || mb_strpos((string)SMTP_PASS, 'ВПИШИТЕ') !== false) {
+        return false; // SMTP не настроен — используем обычный mail()
+    }
+    $secure = ((int)SMTP_PORT === 465);
+    $addr = ($secure ? 'ssl://' : '') . SMTP_HOST . ':' . SMTP_PORT;
+    $fp = @stream_socket_client($addr, $errno, $errstr, 15);
+    if (!$fp) { return false; }
+    stream_set_timeout($fp, 15);
+    $read = function () use ($fp) {
+        $data = '';
+        while (($line = fgets($fp, 600)) !== false) {
+            $data .= $line;
+            if (strlen($line) >= 4 && $line[3] === ' ') { break; }
+        }
+        return $data;
+    };
+    $cmd = function ($c) use ($fp, $read) { fwrite($fp, $c . "\r\n"); return $read(); };
+    $ok = true;
+    $read();
+    $cmd('EHLO alpha-rent.ru');
+    $cmd('AUTH LOGIN');
+    $cmd(base64_encode(SMTP_USER));
+    if (strpos($cmd(base64_encode(SMTP_PASS)), '235') === false) { $ok = false; }
+    if ($ok) { $cmd('MAIL FROM:<' . SMTP_USER . '>'); }
+    if ($ok) { $cmd('RCPT TO:<' . $to . '>'); }
+    if ($ok && strpos($cmd('DATA'), '354') === false) { $ok = false; }
+    if ($ok) {
+        $msg = 'From: ' . MAIL_FROM . "\r\n"
+             . 'To: <' . $to . ">\r\n"
+             . 'Subject: ' . $subject . "\r\n"
+             . "MIME-Version: 1.0\r\n"
+             . "Content-Type: text/plain; charset=UTF-8\r\n"
+             . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+             . $body . "\r\n.";
+        if (strpos($cmd($msg), '250') === false) { $ok = false; }
+    }
+    fwrite($fp, "QUIT\r\n");
+    fclose($fp);
+    return $ok;
+}
+
 /* Отправка письма со ссылкой подтверждения e-mail */
 function send_verification_email($email, $name, $token) {
     $link = SITE_URL . '/verify.php?token=' . urlencode($token);
@@ -203,6 +262,7 @@ function send_verification_email($email, $name, $token) {
              . "MIME-Version: 1.0\r\n"
              . "Content-Type: text/plain; charset=UTF-8\r\n"
              . "Content-Transfer-Encoding: 8bit\r\n";
+    if (smtp_send($email, $subject, $body)) { return true; }
     return @mail($email, $subject, $body, $headers);
 }
 
@@ -221,6 +281,27 @@ function send_reset_email($email, $name, $token) {
              . "MIME-Version: 1.0\r\n"
              . "Content-Type: text/plain; charset=UTF-8\r\n"
              . "Content-Transfer-Encoding: 8bit\r\n";
+    if (smtp_send($email, $subject, $body)) { return true; }
+    return @mail($email, $subject, $body, $headers);
+}
+
+/* Письмо клиенту о подтверждении брони */
+function send_booking_confirmed_email($email, $name, $model, $bikeNumber, $startDate) {
+    $subject = '=?UTF-8?B?' . base64_encode('Бронь подтверждена — Alpha Rent') . '?=';
+    $body = 'Здравствуйте, ' . $name . "!\r\n\r\n"
+          . "Ваша бронь подтверждена.\r\n\r\n"
+          . 'Модель: ' . $model . "\r\n"
+          . 'Велосипед: № ' . $bikeNumber . "\r\n"
+          . 'Дата начала: ' . $startDate . "\r\n\r\n"
+          . "Велосипед готовится к выдаче. Ждём вас!\r\n\r\n"
+          . "Alpha Rent — аренда электровелосипедов в Казани\r\n"
+          . SITE_URL . "\r\n";
+    $headers = 'From: ' . MAIL_FROM . "\r\n"
+             . 'Reply-To: ' . MAIL_FROM . "\r\n"
+             . "MIME-Version: 1.0\r\n"
+             . "Content-Type: text/plain; charset=UTF-8\r\n"
+             . "Content-Transfer-Encoding: 8bit\r\n";
+    if (smtp_send($email, $subject, $body)) { return true; }
     return @mail($email, $subject, $body, $headers);
 }
 
@@ -290,6 +371,18 @@ function billing_tariffs() {
         'Saige GT1 (1×50 Ah + 2×30 Ah)' => 4000,
         'Saige GT1 (2×50 Ah)'           => 4500,
     ];
+}
+
+/* Цена недели за физическую модель (для запуска аренды из брони) */
+function model_weekly_price($model) {
+    $map = [
+        'Truck+'         => 2500,
+        'Jetson Monster' => 3000,
+        'Kugoo V3 Pro'   => 3000,
+        'Saige Monster'  => 3000,
+        'Saige GT1'      => 4000,
+    ];
+    return isset($map[$model]) ? $map[$model] : 0;
 }
 
 /* Запись операции в историю биллинга */

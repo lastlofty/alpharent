@@ -1,0 +1,36 @@
+# ===== Alpha Rent — настройки сервера =====
+
+# Кодировка по умолчанию
+AddDefaultCharset UTF-8
+
+# Своя страница 404
+ErrorDocument 404 /404.html
+
+# Сжатие (gzip) — страницы передаются легче
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Кэширование статики в браузере посетителя
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType image/x-icon "access plus 30 days"
+</IfModule>
+
+# Заголовки безопасности
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Запрет листинга каталогов
+Options -Indexes

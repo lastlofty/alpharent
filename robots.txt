@@ -5,6 +5,7 @@ Disallow: /admin_export.php
 Disallow: /admin_user.php
 Disallow: /admin_bikes.php
 Disallow: /admin_bookings.php
+Disallow: /admin_requests.php
 Disallow: /cron_billing.php
 Disallow: /account.php
 Disallow: /login.php
