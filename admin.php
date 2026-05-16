@@ -59,7 +59,10 @@ require __DIR__ . '/includes/header.php';
     <div class="account-wrap" style="max-width:1040px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px">
         <h1 style="font-size:28px">Админ-панель</h1>
-        <a href="admin.php?logout=1" class="btn btn-outline">Выйти из админки</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a href="admin_bikes.php" class="btn btn-primary">Парк техники</a>
+          <a href="admin.php?logout=1" class="btn btn-outline">Выйти из админки</a>
+        </div>
       </div>
 
       <div class="grid grid-3" style="margin-bottom:22px">

@@ -71,6 +71,15 @@ function db() {
                 created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
         );
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS bikes (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                model      VARCHAR(80) NOT NULL,
+                number     INT NOT NULL,
+                status     VARCHAR(20) NOT NULL DEFAULT "free",
+                created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
     }
     return $pdo;
 }
@@ -255,6 +264,26 @@ function require_admin() {
         header('Location: admin.php');
         exit;
     }
+}
+
+/* Физические модели велосипедов (для парка техники) */
+function bike_models() {
+    return ['Truck+', 'Jetson Monster', 'Kugoo V3 Pro', 'Saige Monster', 'Saige GT1'];
+}
+
+/* Статусы велосипеда */
+function bike_statuses() {
+    return [
+        'free'   => 'Свободен',
+        'booked' => 'Забронирован',
+        'rented' => 'В аренде',
+        'repair' => 'В ремонте',
+        'stolen' => 'Украден',
+    ];
+}
+function bike_status_label($s) {
+    $m = bike_statuses();
+    return isset($m[$s]) ? $m[$s] : $s;
 }
 
 /* Дозапись заявки в файл requests.csv (открывается в Excel) */
