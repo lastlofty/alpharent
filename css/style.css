@@ -990,7 +990,7 @@ table.price-table {
   position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ffffff;
 }
 .gallery__strip {
   display: flex;
@@ -1005,7 +1005,8 @@ table.price-table {
   flex: 0 0 100%;
   width: 100%;
   height: 260px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #ffffff;
   scroll-snap-align: center;
   display: block;
 }
@@ -1047,13 +1048,15 @@ table.price-table {
 .bike-card__media img {
   width: 100%;
   height: 200px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #ffffff;
   border-radius: var(--radius-sm);
 }
 .hero__bike img {
   width: 100%;
   height: 230px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #ffffff;
   border-radius: 14px;
 }
 
