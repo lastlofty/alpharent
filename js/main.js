@@ -70,11 +70,21 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res && res.ok) {
-            if (ok) {
-              ok.classList.add("show");
-              ok.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (res.pay_url) {
+              if (ok) {
+                ok.textContent = "Заявка принята! Открываем страницу оплаты…";
+                ok.classList.add("show");
+                ok.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+              form.reset();
+              setTimeout(function () { window.location.href = res.pay_url; }, 1600);
+            } else {
+              if (ok) {
+                ok.classList.add("show");
+                ok.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+              form.reset();
             }
-            form.reset();
           } else {
             alert("Не удалось отправить заявку. Позвоните нам: +7 (995) 687-03-04");
           }

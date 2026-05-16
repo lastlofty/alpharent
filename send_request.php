@@ -28,6 +28,9 @@ if (mb_strlen($name) < 2 || !valid_ru_phone($phone)) {
 append_request_csv($name, $phone, $_POST);
 
 // Формируем сообщение для Telegram
+$pay    = trim($_POST['pay'] ?? '');
+$isCard = ($pay !== '' && mb_stripos($pay, 'карт') !== false);
+
 $fields = [
     'model'   => 'Модель',
     'term'    => 'Срок аренды',
@@ -46,6 +49,11 @@ foreach ($fields as $key => $label) {
         $lines[] = $label . ': ' . $val;
     }
 }
+if ($pay !== '') {
+    $lines[] = $isCard
+        ? '💳 Оплата: онлайн картой — проверьте поступление в Точке'
+        : '💵 Оплата: наличными при получении';
+}
 if ($source !== '') {
     $lines[] = 'Страница: ' . $source;
 }
@@ -53,5 +61,11 @@ $lines[] = 'Время: ' . date('d.m.Y H:i');
 
 send_telegram(implode("\n", $lines));
 
-// Заявка принята (сохранена в файл; в Telegram отправлена, если бот настроен)
-echo json_encode(['ok' => true]);
+// Если выбрана оплата картой — возвращаем ссылку для перехода к оплате
+$payUrl = '';
+if ($isCard && defined('PAYMENT_LINK') && (string)PAYMENT_LINK !== ''
+    && mb_strpos((string)PAYMENT_LINK, 'ВПИШИТЕ') === false) {
+    $payUrl = PAYMENT_LINK;
+}
+
+echo json_encode(['ok' => true, 'pay_url' => $payUrl]);
