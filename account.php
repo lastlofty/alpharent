@@ -44,11 +44,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    // обновляем данные пользователя после изменений
     $st = db()->prepare('SELECT * FROM users WHERE id = ?');
     $st->execute([$_SESSION['uid']]);
     $u = $st->fetch();
 }
+
+// История биллинга
+$histSt = db()->prepare('SELECT * FROM billing_log WHERE user_id = ? ORDER BY id DESC LIMIT 30');
+$histSt->execute([$u['id']]);
+$history = $histSt->fetchAll();
+
+$payReady = defined('PAYMENT_LINK') && PAYMENT_LINK !== '' && mb_strpos((string)PAYMENT_LINK, 'ВПИШИТЕ') === false;
 
 $PAGE_TITLE = 'Личный кабинет — Alpha Rent';
 $ACTIVE = 'account';
@@ -58,7 +64,7 @@ require __DIR__ . '/includes/header.php';
   <div class="container">
     <div class="breadcrumbs"><a href="index.html">Главная</a> / Личный кабинет</div>
     <h1>Здравствуйте, <?= e($u['name']) ?>!</h1>
-    <p>Это ваш личный кабинет Alpha Rent. Здесь можно изменить данные профиля и пароль.</p>
+    <p>Здесь — ваша аренда, сумма к оплате, история начислений и данные профиля.</p>
   </div>
 </section>
 
@@ -73,6 +79,70 @@ require __DIR__ . '/includes/header.php';
         <ul><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
       </div>
     <?php endif; ?>
+
+    <div class="account-box">
+      <h2>Аренда и оплата</h2>
+      <?php if ($u['tariff_model']): ?>
+        <div class="data-row"><span>Модель</span><b><?= e($u['tariff_model']) ?></b></div>
+        <div class="data-row"><span>Стоимость недели</span><b><?= money($u['weekly_price']) ?></b></div>
+        <div class="data-row"><span>Бесплатные дни</span><b><?= (int)$u['free_days'] ?></b></div>
+        <div class="data-row">
+          <span>Статус аренды</span>
+          <b><?= ((int)$u['rental_active'] === 1) ? 'Активна' : 'Приостановлена' ?></b>
+        </div>
+        <?php if ((int)$u['rental_active'] === 1 && $u['next_charge_at']): ?>
+          <div class="data-row"><span>Следующее начисление</span><b><?= e(date('d.m.Y', strtotime($u['next_charge_at']))) ?></b></div>
+        <?php endif; ?>
+
+        <div style="margin:18px 0;padding:18px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)">
+          <div style="color:var(--muted);font-size:13px">К оплате</div>
+          <div style="font-family:Montserrat,sans-serif;font-size:34px;font-weight:800;color:<?= ((int)$u['debt'] > 0) ? 'var(--red)' : 'var(--white)' ?>">
+            <?= money($u['debt']) ?>
+          </div>
+        </div>
+
+        <?php if ((int)$u['debt'] > 0): ?>
+          <?php if ($payReady): ?>
+            <a href="<?= e(PAYMENT_LINK) ?>" target="_blank" rel="noopener" class="btn btn-primary btn-block btn-lg">Оплатить онлайн</a>
+            <p class="form__note">Оплата через Точку Банк. Сумма обновится после того, как мы подтвердим поступление платежа.</p>
+          <?php else: ?>
+            <div class="alert alert--error">Онлайн-оплата ещё настраивается. Для оплаты свяжитесь с нами: +7 (995) 687-03-04.</div>
+          <?php endif; ?>
+        <?php else: ?>
+          <div class="alert alert--ok">Задолженности нет — спасибо!</div>
+        <?php endif; ?>
+      <?php else: ?>
+        <p style="color:var(--muted)">Аренда пока не оформлена. Выберите электровелосипед в <a href="arenda.html" style="color:var(--red)">каталоге</a> или позвоните нам: +7 (995) 687-03-04.</p>
+      <?php endif; ?>
+
+      <?php if ($history): ?>
+        <h4 style="margin-top:22px;font-size:15px">История операций</h4>
+        <div class="table-wrap" style="margin-top:10px">
+          <table class="price-table">
+            <thead><tr><th>Дата</th><th>Операция</th><th>Сумма / дни</th><th>Комментарий</th></tr></thead>
+            <tbody>
+              <?php foreach ($history as $h): ?>
+                <tr>
+                  <td><?= e(date('d.m.Y H:i', strtotime($h['created_at']))) ?></td>
+                  <td><?= e(billing_type_label($h['type'])) ?></td>
+                  <td>
+                    <?php if ((int)$h['days'] > 0 && $h['type'] === 'free_days'): ?>
+                      +<?= (int)$h['days'] ?> дн.
+                    <?php elseif ((int)$h['amount'] !== 0): ?>
+                      <?php $isMinus = in_array($h['type'], ['payment'], true) || (int)$h['amount'] < 0; ?>
+                      <?= $isMinus ? '−' : '+' ?><?= money(abs((int)$h['amount'])) ?>
+                    <?php else: ?>
+                      —
+                    <?php endif; ?>
+                  </td>
+                  <td><?= e($h['comment']) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
 
     <div class="account-box">
       <h2>Мои данные</h2>

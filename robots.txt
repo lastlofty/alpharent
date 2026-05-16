@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /admin.php
 Disallow: /admin_export.php
+Disallow: /admin_user.php
+Disallow: /cron_billing.php
 Disallow: /account.php
 Disallow: /login.php
 Disallow: /register.php

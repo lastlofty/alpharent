@@ -46,6 +46,31 @@ function db() {
         try {
             $pdo->exec('ALTER TABLE users ADD COLUMN verify_token VARCHAR(64) NULL');
         } catch (PDOException $e) { /* столбец уже существует */ }
+        // Миграция: столбцы биллинга (аренда и оплата)
+        $billingCols = [
+            'ALTER TABLE users ADD COLUMN tariff_model VARCHAR(80) NULL',
+            'ALTER TABLE users ADD COLUMN weekly_price INT NOT NULL DEFAULT 0',
+            'ALTER TABLE users ADD COLUMN rental_active TINYINT NOT NULL DEFAULT 0',
+            'ALTER TABLE users ADD COLUMN rental_start DATETIME NULL',
+            'ALTER TABLE users ADD COLUMN next_charge_at DATETIME NULL',
+            'ALTER TABLE users ADD COLUMN free_days INT NOT NULL DEFAULT 0',
+            'ALTER TABLE users ADD COLUMN debt INT NOT NULL DEFAULT 0',
+        ];
+        foreach ($billingCols as $sql) {
+            try { $pdo->exec($sql); } catch (PDOException $e) { /* столбец уже существует */ }
+        }
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS billing_log (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                user_id    INT NOT NULL,
+                type       VARCHAR(20) NOT NULL,
+                amount     INT NOT NULL DEFAULT 0,
+                days       INT NOT NULL DEFAULT 0,
+                comment    VARCHAR(255) NULL,
+                created_by VARCHAR(40) NULL,
+                created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
     }
     return $pdo;
 }
@@ -179,6 +204,57 @@ function send_telegram($text) {
         'timeout' => 10,
     ]]);
     return @file_get_contents($url, false, $ctx) !== false;
+}
+
+/* Тарифы аренды: модель => цена за неделю (₽) */
+function billing_tariffs() {
+    return [
+        'Truck+'                        => 2500,
+        'Jetson Monster'                => 3000,
+        'Kugoo V3 Pro'                  => 3000,
+        'Saige Monster'                 => 3000,
+        'Saige GT1 (1×50 Ah + 2×30 Ah)' => 4000,
+        'Saige GT1 (2×50 Ah)'           => 4500,
+    ];
+}
+
+/* Запись операции в историю биллинга */
+function billing_log_add($userId, $type, $amount, $days, $comment, $by) {
+    db()->prepare(
+        'INSERT INTO billing_log (user_id, type, amount, days, comment, created_by, created_at)
+         VALUES (?,?,?,?,?,?,?)'
+    )->execute([(int)$userId, $type, (int)$amount, (int)$days, $comment, $by, date('Y-m-d H:i:s')]);
+}
+
+/* Человеческое название операции биллинга */
+function billing_type_label($type) {
+    $map = [
+        'charge'    => 'Начисление за неделю',
+        'payment'   => 'Оплата',
+        'fine'      => 'Штраф',
+        'free_days' => 'Бесплатные дни',
+        'adjust'    => 'Корректировка долга',
+        'start'     => 'Старт аренды',
+        'pause'     => 'Аренда приостановлена',
+        'resume'    => 'Аренда возобновлена',
+    ];
+    return $map[$type] ?? $type;
+}
+
+/* Сумма в рублях для вывода */
+function money($n) {
+    return number_format((int)$n, 0, '', "\xC2\xA0") . "\xC2\xA0\xE2\x82\xBD";
+}
+
+/* Проверка прав администратора */
+function is_admin() {
+    return !empty($_SESSION['admin']);
+}
+function require_admin() {
+    if (!is_admin()) {
+        header('Location: admin.php');
+        exit;
+    }
 }
 
 /* Дозапись заявки в файл requests.csv (открывается в Excel) */
