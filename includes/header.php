@@ -36,7 +36,7 @@ function nav_active($key, $cur) { return $key === $cur ? ' class="active"' : '';
       <img src="assets/logo.jpg" alt="Логотип Alpha Rent">
       <span class="logo__text">
         <span class="logo__name">ALPHA<span> RENT</span></span>
-        <span class="logo__tag">Аренда электровелосипедов</span>
+        <span class="logo__tag">Аренда|Ремонт<br>электровелосипедов</span>
       </span>
     </a>
     <span class="city-badge" title="Аренда электровелосипедов в Казани">

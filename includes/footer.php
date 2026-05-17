@@ -8,7 +8,7 @@
           <img src="assets/logo.jpg" alt="Alpha Rent">
           <span class="logo__text">
             <span class="logo__name">ALPHA<span> RENT</span></span>
-            <span class="logo__tag">Аренда электровелосипедов</span>
+            <span class="logo__tag">Аренда|Ремонт<br>электровелосипедов</span>
           </span>
         </a>
         <p>Аренда, ремонт и выкуп электровелосипедов для курьеров в Казани.</p>
