@@ -929,6 +929,30 @@ table.price-table {
 .specs-panel__note { color: var(--muted); font-size: 13px; margin-top: 10px; }
 [data-specs-toggle].active { border-color: var(--red); color: var(--white); }
 
+/* ===== Лента фото в раскрывающемся блоке модели ===== */
+.photo-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 2px 10px;
+  margin-bottom: 14px;
+  -ms-overflow-style: none;
+  scrollbar-width: thin;
+}
+.photo-strip img {
+  flex: 0 0 auto;
+  height: 150px;
+  width: auto;
+  border-radius: var(--radius-sm);
+  scroll-snap-align: start;
+  filter:
+    drop-shadow(0 -2px 0 #fff) drop-shadow(0 2px 0 #fff)
+    drop-shadow(-2px 0 0 #fff) drop-shadow(2px 0 0 #fff)
+    drop-shadow(-1.5px -1.5px 0 #fff) drop-shadow(1.5px -1.5px 0 #fff)
+    drop-shadow(-1.5px 1.5px 0 #fff) drop-shadow(1.5px 1.5px 0 #fff);
+}
+
 @media (max-width: 1000px) {
   .reviews-track .review-card { flex: 0 0 calc((100% - 22px) / 2); }
 }
